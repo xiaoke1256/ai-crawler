@@ -21,13 +21,15 @@ def scrape_website(url):
 
         # 示例：提取页面内容
         content = page.inner_text("body")
+        html = page.inner_html("body")
+        print(f"content: {html}")
 
         # 保存数据到CSV
-        with open('output.csv', 'w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['链接', '内容摘要'])
-            for link in links[:10]:  # 限制前10个链接
-                writer.writerow([link, content[:100]])  # 内容摘要前100字符
+        # with open('output.csv', 'w', newline='', encoding='utf-8') as f:
+        #     writer = csv.writer(f)
+        #     writer.writerow(['链接', '内容摘要'])
+        #     for link in links[:10]:  # 限制前10个链接
+        #         writer.writerow([link, content[:100]])  # 内容摘要前100字符
 
         # 关闭资源
         context.close()
