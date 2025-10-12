@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright
 import csv
 
-
+# 移除async关键字，改为同步函数
 def scrape_website(url):
     with sync_playwright() as p:
         # 启动浏览器（无头模式可改为headless=True）
@@ -22,7 +22,18 @@ def scrape_website(url):
         # 示例：提取页面内容
         content = page.inner_text("body")
         html = page.inner_html("body")
-        print(f"content: {html}")
+        # 移除await关键字，使用同步方式获取元素
+        productList = page.locator('#search_nature_rg')
+        print(f"content: {html[:200]}...")  # 限制输出长度，避免过多内容
+        print(f"type of product: {type(productList)}")
+        print(f"productList: {productList.count()}")
+        #productList.for_each(lambda x: print(x))
+        links = page.query_selector_all('#search_nature_rg p.name>a')
+        for link in links:
+            # 获取链接的文本和href属性
+            text = link.text_content()
+            href = link.get_attribute('href')
+            print(f'Link Text: {text}, URL: {href}')
 
         # 保存数据到CSV
         # with open('output.csv', 'w', newline='', encoding='utf-8') as f:
@@ -37,5 +48,5 @@ def scrape_website(url):
 
 
 if __name__ == "__main__":
-    target_url = "https://book.dangdang.com/children"  # 替换为目标网站
+    target_url = "https://category.dangdang.com/cp01.41.05.03.00.00.html"
     scrape_website(target_url)
