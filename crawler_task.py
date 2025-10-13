@@ -2,12 +2,16 @@ from playwright.sync_api import sync_playwright
 import time
 import random
 import threading
+import os
+
+WEB_DIR = os.path.dirname(os.path.abspath(__file__))
+COOKIE_PATH = os.path.join(WEB_DIR, "cookie.json")
 
 def scrape_website(url):
     with sync_playwright() as p:
         # 启动浏览器（无头模式可改为headless=True）
         browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
+        context = browser.new_context(storage_state=COOKIE_PATH)
         page = context.new_page()
 
         # 导航到目标页面
