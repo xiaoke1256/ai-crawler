@@ -3,6 +3,12 @@ import time
 import random
 import threading
 import os
+from dotenv import load_dotenv
+from pymongo import MongoClient
+
+load_dotenv()
+
+MONGODB_URI = os.getenv("MONGODB_URI")
 
 WEB_DIR = os.path.dirname(os.path.abspath(__file__))
 COOKIE_PATH = os.path.join(WEB_DIR, "cookie.json")
@@ -13,6 +19,11 @@ def scrape_website(url):
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=COOKIE_PATH)
         page = context.new_page()
+
+        # 连接MongoDB
+        client = MongoClient(MONGODB_URI)
+        db = client['crawler']
+        productsCollection = db['products']
 
         # 导航到目标页面
         page.goto(url)
@@ -27,16 +38,25 @@ def scrape_website(url):
         print(f"type of product: {type(productList)}")
         print(f"productList: {productList.count()}")
         #productList.for_each(lambda x: print(x))
-        links = page.query_selector_all('#search_nature_rg p.name>a')
-        for link in links:
+        lines = page.query_selector_all('#search_nature_rg li')
+        for line in lines:
+            sku = line.get_attribute('sku')
+            print(f"sku:{sku}")
+            link = line.query_selector('p.name>a')
             # 获取链接的文本和href属性
             text = link.text_content()
             href = link.get_attribute('href')
-            print(f'Link Text: {text}, URL: {href}')
-            random_float = random.uniform(2, 6)
-            print(random_float)
-            time.sleep(random_float)  # 延迟2-6秒
-            scrape_details(context,"https:"+href)
+            product = {
+                "sku":sku,
+                "name": text,
+                "href": href
+            }
+            post_id = productsCollection.insert_one(product).inserted_id
+            # print(f'Link Text: {text}, URL: {href}')
+            # random_float = random.uniform(2, 6)
+            # print(random_float)
+            # time.sleep(random_float)  # 延迟2-6秒
+            # scrape_details(context,"https:"+href)
             # thread = threading.Thread(target=scrape_details,args=(context,"https:"+href,))
             # thread.start()
             # thread.join()
@@ -49,6 +69,7 @@ def scrape_website(url):
         #         writer.writerow([link, content[:100]])  # 内容摘要前100字符
 
         # 关闭资源
+        client.close()
         context.close()
         browser.close()
 

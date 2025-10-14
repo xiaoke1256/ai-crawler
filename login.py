@@ -23,6 +23,7 @@ async def main():
         storage = await context.storage_state(path=COOKIE_PATH)
         print(storage)
         # await page.screenshot(path=f'example.png')
+        # todo : 将来要把 cookie 放在 db 中
         await browser.close()
         print("close browser")
 
