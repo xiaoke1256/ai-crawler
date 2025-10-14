@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 import time
+from datetime import datetime
 import random
 import threading
 import os
@@ -52,7 +53,8 @@ def scrape_website(url):
                     "name": text,
                     "href": href
                 }
-                post_id = productsCollection.insert_one(product).inserted_id
+                current_time = datetime.now()
+                productsCollection.update_one({"sku":sku}, {"$set":{"update_time": current_time,**product},"$setOnInsert": {"create_time": current_time}}, upsert=True)
                 # print(f'Link Text: {text}, URL: {href}')
                 # random_float = random.uniform(2, 6)
                 # print(random_float)
