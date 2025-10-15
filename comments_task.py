@@ -21,27 +21,57 @@ productsCollection = db['products']
 commentsCollection = db['comments']
 
 current_time = datetime.now()
-products = productsCollection.find(
-    {"$or": [
-        {"fetch_comments_time": {"$exists": False}},
-        {"fetch_comments_time": {"$lt": current_time}}
-    ]}
-)
-data_list = list(products)
+
 #print(f"products: {data_list}")
+def scrape_all_comments():
+    with sync_playwright() as p:
+        products = productsCollection.find(
+            {"$or": [
+                {"fetch_comments_time": {"$exists": False}},
+                {"fetch_comments_time": {"$lt": current_time}}
+            ]}
+        )
+        data_list = list(products)
+
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context(storage_state=COOKIE_PATH)
+
+        for data in data_list:
+            scrape_comments(context,data['href'],data['sku'])
+
+        context.close()
+        browser.close()
+
 
 def scrape_comments(context,url,sku):
+    if(url.startswith('//')):
+        url = "https:"+url
     page = context.new_page()
 
     # 导航到目标页面
     page.goto(url)
+    #page.wait_for_load_state('networkidle')
     print(f"当前页面标题: {page.title()}")
 
+    tab = page.query_selector('#comment_tab')
+    #tab.scroll_into_view_if_needed()
+    page.evaluate('''() => {
+           const element = document.querySelector('#comment_tab');
+           element.scrollIntoView({ behavior: 'auto', block: 'center' });
+           element.click();
+       }''')
+
+    #print("滚动完成")
+
     #模拟点击评论条数按钮
-    page.click('#comment_tab')
+    tab.click()
+    print("点击评论完成")
     #点击后等待评论显示出来
-    time.sleep(1/1000)
-    page.wait_for_selector('#comment_num_tab')
+    time.sleep(10/1000)
+    print('点击了评论条数')
+    #page.locator("#comment_num_tab").scroll_into_view_if_needed()
+    #page.wait_for_selector('#comment_num_tab')
+
 
     #commentsList = []
 
@@ -106,11 +136,4 @@ def scrape_comments(context,url,sku):
     productsCollection.update_one({"sku":sku}, {"$set":{"fetch_comments_time":current_time}})
 
 if __name__ == "__main__":
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context(storage_state=COOKIE_PATH)
-        scrape_comments(context,'https://product.dangdang.com/29671906.html','29671906')
-
-        context.close()
-        browser.close()
-
+    scrape_all_comments()
