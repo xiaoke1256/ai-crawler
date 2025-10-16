@@ -37,7 +37,12 @@ def scrape_all_comments():
         context = browser.new_context(storage_state=COOKIE_PATH)
 
         for data in data_list:
-            scrape_comments(context,data['href'],data['sku'])
+            #todo: 随机休眠一段时间
+            try:
+                print(f"开始爬取: {data['href']}")
+                scrape_comments(context, data['href'], data['sku'])
+            except Exception as e:
+                print(f"错误: {e}")
 
         context.close()
         browser.close()
@@ -81,17 +86,18 @@ def scrape_comments(context,url,sku):
     page.wait_for_selector('#comment_list')
 
     # 提取评论的文本
-    comments =page.query_selector_all('#comment_list div.describe_detail')
+    comments =page.query_selector_all('#comment_list div.describe_detail a')
     for comment in comments:
         href = comment.get_attribute('href')
         comment_text = comment.text_content()
+        print(f'href: {href}')
         print(f'评论文本: {comment_text.strip()}')
         commentObject = {
             "href": href,
             "sku": sku,
             "text": comment_text.strip()
         }
-        commentsCollection.update_one({"href":href}, {"$set":{"update_time": current_time,**commentObject},
+        commentsCollection.update_one({"href": href}, {"$set":{"update_time": current_time,**commentObject},
                                                       "$setOnInsert": {"create_time": current_time}}, upsert=True)
 
     # 点击中评
@@ -100,9 +106,10 @@ def scrape_comments(context,url,sku):
     page.wait_for_selector('#comment_list')
 
     # 提取评论的文本
-    comments = page.query_selector_all('#comment_list div.describe_detail')
+    comments = page.query_selector_all('#comment_list div.describe_detail a')
     for comment in comments:
         href = comment.get_attribute('href')
+        print(f'href: {href}')
         comment_text = comment.text_content()
         print(f'评论文本: {comment_text.strip()}')
         commentObject = {
