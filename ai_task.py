@@ -5,7 +5,7 @@ import threading
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from ai import sentiment_analysis_cn as ai
+from ai.sentiment_analysis_cn import analyze_sentiment
 
 load_dotenv()
 
@@ -26,7 +26,7 @@ def label_comments():
         print(f"开始打标签: {comment['text']}")
         # 模拟打标签
         #time.sleep(random.uniform(1, 3))
-        result = ai.analyze_sentiment(comment['text'])
+        result = analyze_sentiment(comment['text'])
         print(f"情感分析结果: {result}")
         emotion = ""
         # 输出主要情感
