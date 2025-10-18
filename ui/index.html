@@ -1,8 +1,83 @@
-<html>
+<html higth="100%" width="100%">
 <head>
     <title>测试</title>
+    <!-- 引入 ECharts -->
+    <script src="echarts.min.js"></script>
+    <script src="jquery.min.js"></script>
 </head>
-<body>
-    <div id="app">测试</div>
+<body higth="100%" width="100%">
+    <div id="main" style="width: 100%;height:100%;"></div>
+    <script type="text/javascript">
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('main'));
+      //从后台获取
+      $.get('/comments/emotion','json',function(resp){
+        var title = '好评率';
+        var skus = []
+        var rateData = []
+        for(var data of resp){
+          var sku = data._id
+          skus.push(sku)
+          rateData.push((data.positive_count/data.total_count*100).toFixed(2))
+        }
+        $.get('/product/'+skus.join(','),'json',function(resp2){
+          var productNames = [];
+          resp2.forEach(function(product){
+            productNames.push(product.name.trim().split(' ')[0])
+          });
+          productNames
+
+          // 指定图表的配置项和数据
+          var option = {
+            title: {
+              text: '各商品的好评率'
+            },
+            tooltip: {
+              formatter: function (params) {
+                var value = params.value; // 获取值
+                return value + '%' + '<br>'+params.name; // 转换为百分数并返回
+              }
+            },
+            legend: {
+              data: [title]
+            },
+            xAxis: {
+              data: productNames,
+              axisLabel: {
+                rotate: 45 , // 设置文字倾斜角度，例如45度
+                formatter: function (value) {
+                  if (value.length>20)
+                    return value.substring(0,19)+'...';
+                  return value;
+                }
+              }
+            },
+            yAxis: {
+              axisLabel: {
+                formatter: function (value, index) {
+                  return value.toFixed(0) + '%';
+                }
+              }
+            },
+            series: [
+              {
+                name: title,
+                type: 'bar',
+                data: rateData,
+                label: {
+                  show: true,
+                  formatter: '{c}%'
+                }
+              }
+            ]
+          };
+
+          // 使用刚指定的配置项和数据显示图表。
+          myChart.setOption(option);
+
+        })
+      })
+
+    </script>
 </body>
 </html>

@@ -6,13 +6,9 @@ load_dotenv()
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 
-WEB_DIR = os.path.dirname(os.path.abspath(__file__))
-COOKIE_PATH = os.path.join(WEB_DIR, "cookie.json")
-
 # 连接MongoDB
 client = MongoClient(MONGODB_URI)
 db = client['crawler']
-productsCollection = db['products']
 commentsCollection = db['comments']
 
 # 类似以下查询语句
