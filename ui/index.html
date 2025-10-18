@@ -12,13 +12,16 @@
       var myChart = echarts.init(document.getElementById('main'));
       //从后台获取
       $.get('/comments/emotion','json',function(resp){
-        var title = '好评率';
         var skus = []
-        var rateData = []
+        var positiveRateData = []
+        var negativeRateData = []
+        var neutralityRateData = []
         for(var data of resp){
           var sku = data._id
           skus.push(sku)
-          rateData.push((data.positive_count/data.total_count*100).toFixed(2))
+          positiveRateData.push((data.positive_count/(data.positive_count+data.negative_count+data.neutrality_count)*100).toFixed(2))
+          negativeRateData.push((data.negative_count/(data.positive_count+data.negative_count+data.neutrality_count)*100).toFixed(2))
+          neutralityRateData.push((data.neutrality_count/(data.positive_count+data.negative_count+data.neutrality_count)*100).toFixed(2))
         }
         $.get('/product/'+skus.join(','),'json',function(resp2){
           var productNames = [];
@@ -39,9 +42,11 @@
               }
             },
             legend: {
-              data: [title]
+              data: ['好评率','中评率','差评率'],
+              selectedMode: false
             },
             xAxis: {
+              type: 'category',
               data: productNames,
               axisLabel: {
                 rotate: 45 , // 设置文字倾斜角度，例如45度
@@ -53,6 +58,7 @@
               }
             },
             yAxis: {
+              max: 100, // 设置 y 轴的最大值为 100
               axisLabel: {
                 formatter: function (value, index) {
                   return value.toFixed(0) + '%';
@@ -61,12 +67,42 @@
             },
             series: [
               {
-                name: title,
+                name: '好评率',
                 type: 'bar',
-                data: rateData,
+                stack: 'total',
+                data: positiveRateData,
                 label: {
                   show: true,
                   formatter: '{c}%'
+                },
+                itemStyle: {
+                  color: '#749f83'
+                }
+              },
+              {
+                name: '中评率',
+                type: 'bar',
+                stack: 'total',
+                data: neutralityRateData,
+                label: {
+                  show: true,
+                  formatter: '{c}%'
+                },
+                itemStyle: {
+                  color: '#d48265'
+                }
+              },
+              {
+                name: '差评率',
+                type: 'bar',
+                stack: 'total',
+                data: negativeRateData,
+                label: {
+                  show: true,
+                  formatter: '{c}%'
+                },
+                itemStyle: {
+                  color: '#c23531'
                 }
               }
             ]

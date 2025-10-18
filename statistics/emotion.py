@@ -37,6 +37,24 @@ def statistics():
                         ]
                     }
                 },
+                "negative_count": {
+                    "$sum": {
+                        "$cond": [
+                            {"$eq": ["$emotion", "negative"]},
+                            1,
+                            0
+                        ]
+                    }
+                },
+                "neutrality_count": {
+                    "$sum": {
+                        "$cond": [
+                            {"$eq": ["$emotion", "neutrality"]},
+                            1,
+                            0
+                        ]
+                    }
+                }
             }
         },
         {
