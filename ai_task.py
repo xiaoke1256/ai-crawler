@@ -38,3 +38,6 @@ def label_comments():
             emotion = 'neutrality'
         # 更新标签
         commentsCollection.update_one({"_id": comment["_id"]}, {"$set": {"emotion": emotion}})
+
+if __name__ == "__main__":
+    label_comments()

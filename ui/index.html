@@ -1,6 +1,6 @@
 <html higth="100%" width="100%">
 <head>
-    <title>测试</title>
+    <title>商品好评率展示</title>
     <!-- 引入 ECharts -->
     <script src="echarts.min.js"></script>
     <script src="jquery.min.js"></script>
@@ -37,8 +37,13 @@
             },
             tooltip: {
               formatter: function (params) {
-                var value = params.value; // 获取值
-                return value + '%' + '<br>'+params.name; // 转换为百分数并返回
+                var value = params.seriesName+':'+params.value; // 获取值
+                var ret = value+'% <br>';
+                if (params.name.length>40)
+                  ret += params.name.substring(0,39)+'...';
+                else
+                  ret += params.name;
+                return ret;
               }
             },
             legend: {
